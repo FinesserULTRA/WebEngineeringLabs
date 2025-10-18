@@ -160,12 +160,28 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;
 }
 
 .display:focus {
     outline: none;
     border-color: var(--accent-purple);
     box-shadow: inset 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 0 4px rgba(124, 58, 237, 0.25);
+}
+
+/* Dynamic font sizing for long expressions */
+.display.small-text {
+    font-size: 1.8rem;
+}
+
+.display.smaller-text {
+    font-size: 1.5rem;
+}
+
+.display.smallest-text {
+    font-size: 1.2rem;
 }
 
 /* Buttons Grid */
@@ -385,6 +401,18 @@ body {
         border-radius: 14px;
         min-height: 60px;
     }
+    
+    .display.small-text {
+        font-size: 1.3rem;
+    }
+
+    .display.smaller-text {
+        font-size: 1.1rem;
+    }
+
+    .display.smallest-text {
+        font-size: 0.95rem;
+    }
 
     .btn {
         padding: 12px;
@@ -434,6 +462,18 @@ body {
         padding: 20px 16px;
         border-radius: 16px;
         min-height: 70px;
+    }
+    
+    .display.small-text {
+        font-size: 1.5rem;
+    }
+
+    .display.smaller-text {
+        font-size: 1.3rem;
+    }
+
+    .display.smallest-text {
+        font-size: 1.1rem;
     }
 
     .btn {

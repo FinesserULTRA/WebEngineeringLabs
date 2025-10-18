@@ -1,52 +1,55 @@
-// Name: Mustafa Hamad
-// CMS: 455095
-// Section: BESE14A
-
-
 let memoryValue = null;
-let displayValue = '0';
-let previousValue = null;
-let currentOperator = null;
-let shouldResetDisplay = false;
+let currentExpression = '0';
+let lastResult = null;
 let calculationHistory = [];
 
-// Get display element
 const displayElement = document.getElementById('display');
 const memoryIndicator = document.getElementById('memoryIndicator');
 
-// Initialize calculator
 function init() {
     refreshDisplay();
     updateMemoryIndicator();
     console.log('Royal Purple Calculator initialized! 🟣');
 }
 
-// Update display with formatting
 function refreshDisplay() {
-    // Format large numbers with commas
-    let formattedValue = displayValue;
+    let displayText = currentExpression;
     
-    // Only format if it's a valid number and not too long
-    if (!isNaN(displayValue) && displayValue.length < 15 && !displayValue.includes('e')) {
-        const num = parseFloat(displayValue);
-        if (Math.abs(num) >= 1000 && Number.isInteger(num)) {
-            formattedValue = num.toLocaleString('en-US');
+    const errorMessages = ['Error', 'Invalid Input', 'Overflow', 'Cannot divide by 0', 'Math Error'];
+    
+    if (!errorMessages.includes(currentExpression) && 
+        !currentExpression.match(/[\+\-\*\/]/) && 
+        !isNaN(currentExpression)) {
+        const num = parseFloat(currentExpression);
+        if (isFinite(num)) {
+            if (Math.abs(num) >= 1000 && Number.isInteger(num)) {
+                displayText = num.toLocaleString('en-US');
+            } else if (Math.abs(num) >= 1000 && !Number.isInteger(num)) {
+                const parts = num.toString().split('.');
+                parts[0] = parseInt(parts[0]).toLocaleString('en-US');
+                displayText = parts.join('.');
+            }
         }
     }
     
-    displayElement.value = formattedValue;
+    displayElement.value = displayText;
+    displayElement.scrollLeft = displayElement.scrollWidth;
+    
+    const length = displayText.length;
+    displayElement.classList.remove('small-text', 'smaller-text', 'smallest-text');
+    
+    if (length > 20) {
+        displayElement.classList.add('smallest-text');
+    } else if (length > 15) {
+        displayElement.classList.add('smaller-text');
+    } else if (length > 12) {
+        displayElement.classList.add('small-text');
+    }
 }
 
 function updateMemoryIndicator() {
     if (memoryValue !== null && memoryValue !== 0) {
-        const memValue = Math.abs(memoryValue);
-        if (memValue >= 1000000) {
-            memoryIndicator.textContent = 'M';
-        } else if (memValue >= 1000) {
-            memoryIndicator.textContent = 'M';
-        } else {
-            memoryIndicator.textContent = 'M';
-        }
+        memoryIndicator.textContent = 'M';
         memoryIndicator.classList.add('active');
     } else {
         memoryIndicator.textContent = '';
@@ -55,218 +58,249 @@ function updateMemoryIndicator() {
 }
 
 function handleNumber(num) {
-    if (shouldResetDisplay || displayValue === '0') {
-        displayValue = num;
-        shouldResetDisplay = false;
+    if (currentExpression === '0' || lastResult !== null) {
+        currentExpression = num;
+        lastResult = null;
     } else {
-        if (displayValue.length < 12) {
-            displayValue += num;
+        if (currentExpression.length < 30) {
+            currentExpression += num;
         }
     }
     refreshDisplay();
 }
 
-// Handle operator input with calculation chaining
 function handleOperator(operator) {
-    const inputValue = parseFloat(displayValue.replace(/,/g, ''));
-    
-    if (previousValue === null) {
-        previousValue = inputValue;
-    } else if (currentOperator && !shouldResetDisplay) {
-        const result = performCalculation();
-        displayValue = String(result);
-        previousValue = result;
-        refreshDisplay();
+    const lastChar = currentExpression.slice(-1);
+    if (['+', '-', '*', '/'].includes(lastChar)) {
+        currentExpression = currentExpression.slice(0, -1) + operator;
+    } else if (currentExpression !== '0') {
+        currentExpression += operator;
     }
-    
-    shouldResetDisplay = true;
-    currentOperator = operator;
-}
-
-function performCalculation() {
-    const prev = previousValue;
-    const current = parseFloat(displayValue.replace(/,/g, ''));
-    
-    if (isNaN(prev) || isNaN(current)) return current;
-    
-    let result;
-    switch (currentOperator) {
-        case '+':
-            result = prev + current;
-            break;
-        case '-':
-            result = prev - current;
-            break;
-        case '*':
-            result = prev * current;
-            break;
-        case '/':
-            result = current !== 0 ? prev / current : NaN;
-            break;
-        default:
-            return current;
-    }
-    
-    // Round to avoid floating point errors
-    return Math.round(result * 100000000) / 100000000;
-}
-
-// Handle decimal point with smarter logic
-function handleDecimal() {
-    if (shouldResetDisplay) {
-        displayValue = '0.';
-        shouldResetDisplay = false;
-    } else if (!displayValue.includes('.')) {
-        displayValue += '.';
-    }
+    lastResult = null;
     refreshDisplay();
 }
 
-// Handle toggle sign (±) with state awareness
-function handleToggleSign() {
-    const value = parseFloat(displayValue.replace(/,/g, ''));
+function handleDecimal() {
+    const parts = currentExpression.split(/[\+\-\*\/]/);
+    const lastNumber = parts[parts.length - 1];
     
-    if (!isNaN(value) && value !== 0) {
-        displayValue = String(-value);
+    if (!lastNumber.includes('.')) {
+        if (currentExpression === '0' || lastResult !== null) {
+            currentExpression = '0.0';
+            lastResult = null;
+        } else {
+            currentExpression += '.0';
+        }
         refreshDisplay();
     }
 }
 
-// Handle equals with animation and history
+function handleToggleSign() {
+    if (!currentExpression.match(/[\+\-\*\/]/)) {
+        const value = parseFloat(currentExpression);
+        if (!isNaN(value) && value !== 0) {
+            currentExpression = String(-value);
+            refreshDisplay();
+        }
+    }
+}
+
 function handleEquals() {
-    if (currentOperator && previousValue !== null) {
-        const result = performCalculation();
+    try {
+        let expression = currentExpression.trim();
+        const lastChar = expression.slice(-1);
+        if (['+', '-', '*', '/'].includes(lastChar)) {
+            expression = expression.slice(0, -1);
+        }
         
-        // Store calculation in history
+        if (!expression || expression === '0' || expression.match(/^[\+\-\*\/]+$/)) {
+            return;
+        }
+        
+        if (expression.match(/\/\s*0(?!\d)/)) {
+            currentExpression = 'Cannot divide by 0';
+            refreshDisplay();
+            setTimeout(() => {
+                currentExpression = '0';
+                lastResult = null;
+                refreshDisplay();
+            }, 1500);
+            return;
+        }
+        
+        const result = Function('"use strict"; return (' + expression + ')')();
+        
+        if (!isFinite(result) || isNaN(result)) {
+            if (result === Infinity || result === -Infinity) {
+                currentExpression = 'Overflow';
+            } else {
+                currentExpression = 'Error';
+            }
+            refreshDisplay();
+            setTimeout(() => {
+                currentExpression = '0';
+                lastResult = null;
+                refreshDisplay();
+            }, 1500);
+            return;
+        }
+        
         calculationHistory.push({
-            expression: `${previousValue} ${currentOperator} ${displayValue}`,
+            expression: expression,
             result: result
         });
         
-        if (!isNaN(result) && isFinite(result)) {
-            displayValue = String(result);
-            
-            // Add visual feedback animation
-            displayElement.classList.add('result-animation');
-            setTimeout(() => {
-                displayElement.classList.remove('result-animation');
-            }, 600);
-            
-            refreshDisplay();
-        } else {
-            displayValue = 'Error';
-            refreshDisplay();
-            resetCalculator();
-        }
+        const roundedResult = Math.round(result * 100000000) / 100000000;
+        currentExpression = String(roundedResult);
+        lastResult = roundedResult;
         
-        previousValue = null;
-        currentOperator = null;
-        shouldResetDisplay = true;
+        displayElement.classList.add('result-animation');
+        setTimeout(() => {
+            displayElement.classList.remove('result-animation');
+        }, 600);
+        
+        refreshDisplay();
+        
+    } catch (error) {
+        console.error('Calculation error:', error);
+        currentExpression = 'Invalid Input';
+        refreshDisplay();
+        setTimeout(() => {
+            currentExpression = '0';
+            lastResult = null;
+            refreshDisplay();
+        }, 1500);
     }
 }
 
-// Reset calculator state
-function resetCalculator() {
-    previousValue = null;
-    currentOperator = null;
-    shouldResetDisplay = false;
-}
-
 function handleClear() {
-    displayValue = '0';
-    previousValue = null;
-    currentOperator = null;
-    shouldResetDisplay = false;
+    currentExpression = '0';
+    lastResult = null;
     refreshDisplay();
 }
 
 function handleSquare() {
-    const value = parseFloat(displayValue.replace(/,/g, ''));
-    
-    if (!isNaN(value)) {
-        const result = value * value;
-        displayValue = String(result);
-        shouldResetDisplay = true;
-        refreshDisplay();
+    if (!currentExpression.match(/[\+\-\*\/]/)) {
+        const value = parseFloat(currentExpression);
+        if (!isNaN(value) && isFinite(value)) {
+            const result = value * value;
+            if (isFinite(result)) {
+                currentExpression = String(result);
+                lastResult = result;
+                refreshDisplay();
+            } else {
+                currentExpression = 'Overflow';
+                refreshDisplay();
+                setTimeout(() => {
+                    currentExpression = '0';
+                    lastResult = null;
+                    refreshDisplay();
+                }, 1500);
+            }
+        }
     }
 }
 
 function handleReciprocal() {
-    const value = parseFloat(displayValue.replace(/,/g, ''));
-    
-    if (!isNaN(value) && value !== 0) {
-        const result = 1 / value;
-        displayValue = String(result);
-        shouldResetDisplay = true;
-        refreshDisplay();
-    } else {
-        displayValue = 'Cannot divide by 0';
-        setTimeout(() => {
-            displayValue = '0';
-            refreshDisplay();
-        }, 1500);
-        refreshDisplay();
+    if (!currentExpression.match(/[\+\-\*\/]/)) {
+        const value = parseFloat(currentExpression);
+        if (!isNaN(value) && isFinite(value)) {
+            if (value === 0) {
+                currentExpression = 'Cannot divide by 0';
+                refreshDisplay();
+                setTimeout(() => {
+                    currentExpression = '0';
+                    lastResult = null;
+                    refreshDisplay();
+                }, 1500);
+            } else {
+                const result = 1 / value;
+                if (isFinite(result)) {
+                    currentExpression = String(result);
+                    lastResult = result;
+                    refreshDisplay();
+                } else {
+                    currentExpression = 'Overflow';
+                    refreshDisplay();
+                    setTimeout(() => {
+                        currentExpression = '0';
+                        lastResult = null;
+                        refreshDisplay();
+                    }, 1500);
+                }
+            }
+        }
     }
 }
 
 function handleSquareRoot() {
-    const value = parseFloat(displayValue.replace(/,/g, ''));
-    
-    if (!isNaN(value)) {
-        if (value >= 0) {
-            const result = Math.sqrt(value);
-            displayValue = String(result);
-            shouldResetDisplay = true;
-            refreshDisplay();
-        } else {
-            displayValue = 'Invalid Input';
-            setTimeout(() => {
-                displayValue = '0';
+    if (!currentExpression.match(/[\+\-\*\/]/)) {
+        const value = parseFloat(currentExpression);
+        if (!isNaN(value) && isFinite(value)) {
+            if (value < 0) {
+                currentExpression = 'Math Error';
                 refreshDisplay();
-            }, 1500);
-            refreshDisplay();
+                setTimeout(() => {
+                    currentExpression = '0';
+                    lastResult = null;
+                    refreshDisplay();
+                }, 1500);
+            } else {
+                const result = Math.sqrt(value);
+                if (isFinite(result)) {
+                    currentExpression = String(result);
+                    lastResult = result;
+                    refreshDisplay();
+                } else {
+                    currentExpression = 'Error';
+                    refreshDisplay();
+                    setTimeout(() => {
+                        currentExpression = '0';
+                        lastResult = null;
+                        refreshDisplay();
+                    }, 1500);
+                }
+            }
         }
     }
 }
 
 function handleMemoryStore() {
-    const value = parseFloat(displayValue.replace(/,/g, ''));
-    
-    if (!isNaN(value) && displayValue !== 'Error') {
-        memoryValue = value;
-        updateMemoryIndicator();
-        
-        memoryIndicator.style.animation = 'none';
-        memoryIndicator.offsetHeight; // Trigger reflow
-        memoryIndicator.style.animation = 'pulse 0.4s ease-out';
-        
-        displayElement.style.borderColor = 'rgba(251, 191, 36, 0.6)';
-        setTimeout(() => {
-            displayElement.style.borderColor = '';
-        }, 300);
+    const errorMessages = ['Error', 'Invalid Input', 'Overflow', 'Cannot divide by 0', 'Math Error'];
+    if (!currentExpression.match(/[\+\-\*\/]/) && !errorMessages.includes(currentExpression)) {
+        const value = parseFloat(currentExpression);
+        if (!isNaN(value) && isFinite(value)) {
+            memoryValue = value;
+            updateMemoryIndicator();
+            
+            memoryIndicator.style.animation = 'none';
+            memoryIndicator.offsetHeight;
+            memoryIndicator.style.animation = 'pulse 0.4s ease-out';
+            
+            displayElement.style.borderColor = 'rgba(251, 191, 36, 0.6)';
+            setTimeout(() => {
+                displayElement.style.borderColor = '';
+            }, 300);
+        }
     }
 }
 
-// Handle Memory Clear (MC)
 function handleMemoryClear() {
     memoryValue = null;
     updateMemoryIndicator();
     
-    // Visual feedback
     displayElement.style.borderColor = 'rgba(220, 38, 38, 0.4)';
     setTimeout(() => {
         displayElement.style.borderColor = '';
     }, 300);
 }
 
-// Handle Memory Recall (MR)
 function handleMemoryRecall() {
     if (memoryValue !== null) {
-        displayValue = String(memoryValue);
-        shouldResetDisplay = true;
+        currentExpression = String(memoryValue);
+        lastResult = null;
         refreshDisplay();
         
-        // Visual feedback
         displayElement.classList.add('result-animation');
         setTimeout(() => {
             displayElement.classList.remove('result-animation');
@@ -274,36 +308,39 @@ function handleMemoryRecall() {
     }
 }
 
-// Handle Memory Add (M+) with accumulation
 function handleMemoryAdd() {
-    const value = parseFloat(displayValue.replace(/,/g, ''));
-    
-    if (!isNaN(value) && displayValue !== 'Error') {
-        if (memoryValue === null) {
-            memoryValue = 0;
+    const errorMessages = ['Error', 'Invalid Input', 'Overflow', 'Cannot divide by 0', 'Math Error'];
+    if (!currentExpression.match(/[\+\-\*\/]/) && !errorMessages.includes(currentExpression)) {
+        const value = parseFloat(currentExpression);
+        if (!isNaN(value) && isFinite(value)) {
+            if (memoryValue === null) {
+                memoryValue = 0;
+            }
+            memoryValue += value;
+            if (!isFinite(memoryValue)) {
+                memoryValue = null;
+                updateMemoryIndicator();
+                return;
+            }
+            updateMemoryIndicator();
+            
+            memoryIndicator.style.animation = 'none';
+            memoryIndicator.offsetHeight;
+            memoryIndicator.style.animation = 'pulse 0.4s ease-out';
         }
-        memoryValue += value;
-        updateMemoryIndicator();
-        
-        memoryIndicator.style.animation = 'none';
-        memoryIndicator.offsetHeight; // Trigger reflow
-        memoryIndicator.style.animation = 'pulse 0.4s ease-out';
     }
 }
 
 document.addEventListener('keydown', function(event) {
     const key = event.key;
     
-    // Prevent default for certain keys
     if (['/', 'Enter'].includes(key)) {
         event.preventDefault();
     }
     
-    // Numbers
     if (key >= '0' && key <= '9') {
         handleNumber(key);
     }
-    // Operators
     else if (key === '+') {
         handleOperator('+');
     }
@@ -316,28 +353,23 @@ document.addEventListener('keydown', function(event) {
     else if (key === '/') {
         handleOperator('/');
     }
-    // Decimal
     else if (key === '.' || key === ',') {
         handleDecimal();
     }
-    // Equals
     else if (key === 'Enter' || key === '=') {
         handleEquals();
     }
-    // Clear
     else if (key === 'Escape' || key.toLowerCase() === 'c') {
         handleClear();
     }
-    // Backspace
     else if (key === 'Backspace') {
-        if (displayValue.length > 1 && !shouldResetDisplay) {
-            displayValue = displayValue.slice(0, -1).replace(/,/g, '');
+        if (currentExpression.length > 1 && lastResult === null) {
+            currentExpression = currentExpression.slice(0, -1);
         } else {
-            displayValue = '0';
+            currentExpression = '0';
         }
         refreshDisplay();
     }
-    // Special functions
     else if (key === 's' || key === 'S') {
         handleSquare();
     }
@@ -346,7 +378,6 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-// Add visual feedback for button presses
 document.querySelectorAll('.btn').forEach(button => {
     button.addEventListener('click', function() {
         this.style.transform = 'scale(0.95)';
@@ -373,14 +404,12 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Initialize on load with welcome message
 window.addEventListener('load', () => {
     init();
     console.log('✨ Royal Purple Calculator Ready! ✨');
     console.log('🎹 Keyboard shortcuts: S for square, R for square root');
 });
 
-// Prevent context menu on calculator
 document.querySelector('.calculator')?.addEventListener('contextmenu', (e) => {
     e.preventDefault();
 });
