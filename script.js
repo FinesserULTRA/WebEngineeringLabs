@@ -3,30 +3,50 @@
 // Section: BESE14A
 
 
-// Global memory variable for calculator
-let M = null;
-let currentInput = '0';
-let lastResult = null;
+let memoryValue = null;
+let displayValue = '0';
+let previousValue = null;
+let currentOperator = null;
+let shouldResetDisplay = false;
+let calculationHistory = [];
 
 // Get display element
-const display = document.getElementById('display');
+const displayElement = document.getElementById('display');
 const memoryIndicator = document.getElementById('memoryIndicator');
 
 // Initialize calculator
 function init() {
-    updateDisplay();
+    refreshDisplay();
     updateMemoryIndicator();
+    console.log('Royal Purple Calculator initialized! 🟣');
 }
 
-// Update display
-function updateDisplay() {
-    display.value = currentInput;
+// Update display with formatting
+function refreshDisplay() {
+    // Format large numbers with commas
+    let formattedValue = displayValue;
+    
+    // Only format if it's a valid number and not too long
+    if (!isNaN(displayValue) && displayValue.length < 15 && !displayValue.includes('e')) {
+        const num = parseFloat(displayValue);
+        if (Math.abs(num) >= 1000 && Number.isInteger(num)) {
+            formattedValue = num.toLocaleString('en-US');
+        }
+    }
+    
+    displayElement.value = formattedValue;
 }
 
-// Update memory indicator
 function updateMemoryIndicator() {
-    if (M !== null && M !== 0) {
-        memoryIndicator.textContent = 'M';
+    if (memoryValue !== null && memoryValue !== 0) {
+        const memValue = Math.abs(memoryValue);
+        if (memValue >= 1000000) {
+            memoryIndicator.textContent = 'M';
+        } else if (memValue >= 1000) {
+            memoryIndicator.textContent = 'M';
+        } else {
+            memoryIndicator.textContent = 'M';
+        }
         memoryIndicator.classList.add('active');
     } else {
         memoryIndicator.textContent = '';
@@ -34,237 +54,250 @@ function updateMemoryIndicator() {
     }
 }
 
-// Handle number input
 function handleNumber(num) {
-    if (currentInput === '0' || lastResult !== null) {
-        currentInput = num;
-        lastResult = null;
+    if (shouldResetDisplay || displayValue === '0') {
+        displayValue = num;
+        shouldResetDisplay = false;
     } else {
-        currentInput += num;
+        if (displayValue.length < 12) {
+            displayValue += num;
+        }
     }
-    updateDisplay();
+    refreshDisplay();
 }
 
-// Handle operator input
+// Handle operator input with calculation chaining
 function handleOperator(operator) {
-    // If the last character is already an operator, replace it
-    const lastChar = currentInput.slice(-1);
-    if (['+', '-', '*', '/'].includes(lastChar)) {
-        currentInput = currentInput.slice(0, -1) + operator;
-    } else {
-        currentInput += operator;
-    }
-    lastResult = null;
-    updateDisplay();
-}
-
-// Handle decimal point
-function handleDecimal() {
-    // Get the last number in the expression
-    const parts = currentInput.split(/[\+\-\*\/]/);
-    const lastNumber = parts[parts.length - 1];
+    const inputValue = parseFloat(displayValue.replace(/,/g, ''));
     
-    // Check if the last number already has a decimal point
-    if (!lastNumber.includes('.')) {
-        // If input is '0' or we just got a result, start fresh with '0.'
-        if (currentInput === '0' || lastResult !== null) {
-            currentInput = '0.0';
-            lastResult = null;
-        } else {
-            // Add '.0' to the end as per requirement (a '0' must be added at the end)
-            currentInput += '.0';
-        }
-        updateDisplay();
+    if (previousValue === null) {
+        previousValue = inputValue;
+    } else if (currentOperator && !shouldResetDisplay) {
+        const result = performCalculation();
+        displayValue = String(result);
+        previousValue = result;
+        refreshDisplay();
     }
+    
+    shouldResetDisplay = true;
+    currentOperator = operator;
 }
 
-// Handle toggle sign (±)
+function performCalculation() {
+    const prev = previousValue;
+    const current = parseFloat(displayValue.replace(/,/g, ''));
+    
+    if (isNaN(prev) || isNaN(current)) return current;
+    
+    let result;
+    switch (currentOperator) {
+        case '+':
+            result = prev + current;
+            break;
+        case '-':
+            result = prev - current;
+            break;
+        case '*':
+            result = prev * current;
+            break;
+        case '/':
+            result = current !== 0 ? prev / current : NaN;
+            break;
+        default:
+            return current;
+    }
+    
+    // Round to avoid floating point errors
+    return Math.round(result * 100000000) / 100000000;
+}
+
+// Handle decimal point with smarter logic
+function handleDecimal() {
+    if (shouldResetDisplay) {
+        displayValue = '0.';
+        shouldResetDisplay = false;
+    } else if (!displayValue.includes('.')) {
+        displayValue += '.';
+    }
+    refreshDisplay();
+}
+
+// Handle toggle sign (±) with state awareness
 function handleToggleSign() {
-    try {
-        // If there's an equation, don't toggle
-        if (currentInput.match(/[\+\-\*\/]/)) {
-            return;
-        }
-        
-        // Parse the current value
-        let value = parseFloat(currentInput);
-        
-        if (!isNaN(value)) {
-            value = -value;
-            currentInput = value.toString();
-            updateDisplay();
-        }
-    } catch (error) {
-        console.error('Error toggling sign:', error);
+    const value = parseFloat(displayValue.replace(/,/g, ''));
+    
+    if (!isNaN(value) && value !== 0) {
+        displayValue = String(-value);
+        refreshDisplay();
     }
 }
 
-// Handle equals
+// Handle equals with animation and history
 function handleEquals() {
-    try {
-        // Evaluate the expression using eval()
-        const result = eval(currentInput);
+    if (currentOperator && previousValue !== null) {
+        const result = performCalculation();
         
-        if (isFinite(result)) {
-            currentInput = result.toString();
-            lastResult = result;
+        // Store calculation in history
+        calculationHistory.push({
+            expression: `${previousValue} ${currentOperator} ${displayValue}`,
+            result: result
+        });
+        
+        if (!isNaN(result) && isFinite(result)) {
+            displayValue = String(result);
             
-            // Add animation effect
-            display.classList.add('result-animation');
+            // Add visual feedback animation
+            displayElement.classList.add('result-animation');
             setTimeout(() => {
-                display.classList.remove('result-animation');
-            }, 500);
+                displayElement.classList.remove('result-animation');
+            }, 600);
             
-            updateDisplay();
+            refreshDisplay();
         } else {
-            currentInput = 'Error';
-            updateDisplay();
+            displayValue = 'Error';
+            refreshDisplay();
+            resetCalculator();
         }
-    } catch (error) {
-        currentInput = 'Error';
-        updateDisplay();
+        
+        previousValue = null;
+        currentOperator = null;
+        shouldResetDisplay = true;
     }
 }
 
-// Handle clear
+// Reset calculator state
+function resetCalculator() {
+    previousValue = null;
+    currentOperator = null;
+    shouldResetDisplay = false;
+}
+
 function handleClear() {
-    currentInput = '0';
-    lastResult = null;
-    // Clear memory as well when C button is pressed (reset everything)
-    M = null;
-    updateDisplay();
-    updateMemoryIndicator();
+    displayValue = '0';
+    previousValue = null;
+    currentOperator = null;
+    shouldResetDisplay = false;
+    refreshDisplay();
 }
 
-// Handle square (x²)
 function handleSquare() {
-    try {
-        // Only work with single numbers, not equations
-        const value = parseFloat(currentInput);
-        
-        if (!isNaN(value) && !currentInput.match(/[\+\-\*\/]/)) {
-            const result = value * value;
-            currentInput = result.toString();
-            lastResult = result;
-            updateDisplay();
-        }
-    } catch (error) {
-        currentInput = 'Error';
-        updateDisplay();
+    const value = parseFloat(displayValue.replace(/,/g, ''));
+    
+    if (!isNaN(value)) {
+        const result = value * value;
+        displayValue = String(result);
+        shouldResetDisplay = true;
+        refreshDisplay();
     }
 }
 
-// Handle reciprocal (1/x)
 function handleReciprocal() {
-    try {
-        // Only work with single numbers, not equations
-        const value = parseFloat(currentInput);
-        
-        if (!isNaN(value) && value !== 0 && !currentInput.match(/[\+\-\*\/]/)) {
-            const result = 1 / value;
-            currentInput = result.toString();
-            lastResult = result;
-            updateDisplay();
-        } else if (value === 0) {
-            currentInput = 'Error';
-            updateDisplay();
-        }
-    } catch (error) {
-        currentInput = 'Error';
-        updateDisplay();
+    const value = parseFloat(displayValue.replace(/,/g, ''));
+    
+    if (!isNaN(value) && value !== 0) {
+        const result = 1 / value;
+        displayValue = String(result);
+        shouldResetDisplay = true;
+        refreshDisplay();
+    } else {
+        displayValue = 'Cannot divide by 0';
+        setTimeout(() => {
+            displayValue = '0';
+            refreshDisplay();
+        }, 1500);
+        refreshDisplay();
     }
 }
 
-// Handle square root (√)
 function handleSquareRoot() {
-    try {
-        // Only work with single numbers, not equations
-        const value = parseFloat(currentInput);
-        
-        if (!isNaN(value) && value >= 0 && !currentInput.match(/[\+\-\*\/]/)) {
+    const value = parseFloat(displayValue.replace(/,/g, ''));
+    
+    if (!isNaN(value)) {
+        if (value >= 0) {
             const result = Math.sqrt(value);
-            currentInput = result.toString();
-            lastResult = result;
-            updateDisplay();
-        } else if (value < 0) {
-            currentInput = 'Error';
-            updateDisplay();
+            displayValue = String(result);
+            shouldResetDisplay = true;
+            refreshDisplay();
+        } else {
+            displayValue = 'Invalid Input';
+            setTimeout(() => {
+                displayValue = '0';
+                refreshDisplay();
+            }, 1500);
+            refreshDisplay();
         }
-    } catch (error) {
-        currentInput = 'Error';
-        updateDisplay();
     }
 }
 
-// Handle Memory Store (MS)
 function handleMemoryStore() {
-    try {
-        // Only store if it's a pure numeric value, not an equation
-        // In case of an equation, it should not store anything
-        if (!currentInput.match(/[\+\-\*\/]/) && currentInput !== 'Error') {
-            const value = parseFloat(currentInput);
-            if (!isNaN(value)) {
-                M = value;
-                updateMemoryIndicator();
-                
-                // Visual feedback
-                memoryIndicator.style.animation = 'none';
-                setTimeout(() => {
-                    memoryIndicator.style.animation = 'pulse 0.3s ease';
-                }, 10);
-            }
-        }
-        // If there's an equation in the display, do nothing (don't store)
-    } catch (error) {
-        console.error('Error storing memory:', error);
+    const value = parseFloat(displayValue.replace(/,/g, ''));
+    
+    if (!isNaN(value) && displayValue !== 'Error') {
+        memoryValue = value;
+        updateMemoryIndicator();
+        
+        memoryIndicator.style.animation = 'none';
+        memoryIndicator.offsetHeight; // Trigger reflow
+        memoryIndicator.style.animation = 'pulse 0.4s ease-out';
+        
+        displayElement.style.borderColor = 'rgba(251, 191, 36, 0.6)';
+        setTimeout(() => {
+            displayElement.style.borderColor = '';
+        }, 300);
     }
 }
 
 // Handle Memory Clear (MC)
 function handleMemoryClear() {
-    M = null;
+    memoryValue = null;
     updateMemoryIndicator();
+    
+    // Visual feedback
+    displayElement.style.borderColor = 'rgba(220, 38, 38, 0.4)';
+    setTimeout(() => {
+        displayElement.style.borderColor = '';
+    }, 300);
 }
 
 // Handle Memory Recall (MR)
 function handleMemoryRecall() {
-    if (M !== null) {
-        currentInput = M.toString();
-        lastResult = null;
-        updateDisplay();
+    if (memoryValue !== null) {
+        displayValue = String(memoryValue);
+        shouldResetDisplay = true;
+        refreshDisplay();
+        
+        // Visual feedback
+        displayElement.classList.add('result-animation');
+        setTimeout(() => {
+            displayElement.classList.remove('result-animation');
+        }, 400);
     }
 }
 
-// Handle Memory Add (M+)
+// Handle Memory Add (M+) with accumulation
 function handleMemoryAdd() {
-    try {
-        // Only add if it's a pure numeric value, not an equation
-        if (!currentInput.match(/[\+\-\*\/]/) && currentInput !== 'Error') {
-            const value = parseFloat(currentInput);
-            if (!isNaN(value)) {
-                // Initialize memory to 0 if it's null
-                if (M === null) {
-                    M = 0;
-                }
-                // Add the input value to the stored value in memory
-                M += value;
-                updateMemoryIndicator();
-                
-                // Visual feedback
-                memoryIndicator.style.animation = 'none';
-                setTimeout(() => {
-                    memoryIndicator.style.animation = 'pulse 0.3s ease';
-                }, 10);
-            }
+    const value = parseFloat(displayValue.replace(/,/g, ''));
+    
+    if (!isNaN(value) && displayValue !== 'Error') {
+        if (memoryValue === null) {
+            memoryValue = 0;
         }
-    } catch (error) {
-        console.error('Error adding to memory:', error);
+        memoryValue += value;
+        updateMemoryIndicator();
+        
+        memoryIndicator.style.animation = 'none';
+        memoryIndicator.offsetHeight; // Trigger reflow
+        memoryIndicator.style.animation = 'pulse 0.4s ease-out';
     }
 }
 
-// Keyboard support
 document.addEventListener('keydown', function(event) {
     const key = event.key;
+    
+    // Prevent default for certain keys
+    if (['/', 'Enter'].includes(key)) {
+        event.preventDefault();
+    }
     
     // Numbers
     if (key >= '0' && key <= '9') {
@@ -277,15 +310,14 @@ document.addEventListener('keydown', function(event) {
     else if (key === '-') {
         handleOperator('-');
     }
-    else if (key === '*') {
+    else if (key === '*' || key === 'x' || key === 'X') {
         handleOperator('*');
     }
     else if (key === '/') {
-        event.preventDefault(); // Prevent browser's quick search
         handleOperator('/');
     }
     // Decimal
-    else if (key === '.') {
+    else if (key === '.' || key === ',') {
         handleDecimal();
     }
     // Equals
@@ -293,35 +325,62 @@ document.addEventListener('keydown', function(event) {
         handleEquals();
     }
     // Clear
-    else if (key === 'Escape' || key === 'c' || key === 'C') {
+    else if (key === 'Escape' || key.toLowerCase() === 'c') {
         handleClear();
     }
     // Backspace
     else if (key === 'Backspace') {
-        if (currentInput.length > 1) {
-            currentInput = currentInput.slice(0, -1);
+        if (displayValue.length > 1 && !shouldResetDisplay) {
+            displayValue = displayValue.slice(0, -1).replace(/,/g, '');
         } else {
-            currentInput = '0';
+            displayValue = '0';
         }
-        updateDisplay();
+        refreshDisplay();
+    }
+    // Special functions
+    else if (key === 's' || key === 'S') {
+        handleSquare();
+    }
+    else if (key === 'r' || key === 'R') {
+        handleSquareRoot();
     }
 });
 
-// Add pulse animation to CSS dynamically
+// Add visual feedback for button presses
+document.querySelectorAll('.btn').forEach(button => {
+    button.addEventListener('click', function() {
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            this.style.transform = '';
+        }, 100);
+    });
+});
+
 const style = document.createElement('style');
 style.textContent = `
     @keyframes pulse {
         0%, 100% {
             transform: scale(1);
             opacity: 1;
+            filter: brightness(1);
         }
         50% {
-            transform: scale(1.2);
-            opacity: 0.8;
+            transform: scale(1.15);
+            opacity: 0.85;
+            filter: brightness(1.2);
         }
     }
 `;
 document.head.appendChild(style);
 
-// Initialize on load
-window.addEventListener('load', init);
+// Initialize on load with welcome message
+window.addEventListener('load', () => {
+    init();
+    console.log('✨ Royal Purple Calculator Ready! ✨');
+    console.log('🎹 Keyboard shortcuts: S for square, R for square root');
+});
+
+// Prevent context menu on calculator
+document.querySelector('.calculator')?.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+});
