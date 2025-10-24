@@ -319,6 +319,11 @@ class Calendar {
             // Set data attribute for date
             day.dataset.date = dateStr;
 
+            // Check if this date is from a different month than the current viewed month
+            if (date.getMonth() !== this.currentDate.getMonth()) {
+                day.classList.add('other-month');
+            }
+
             // Check if this is today
             const today = new Date();
             if (date.getDate() === today.getDate() &&

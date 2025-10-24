@@ -501,15 +501,29 @@ button:hover {
 }
 
 #week-view .current-day .date-number {
+    background: linear-gradient(135deg, var(--royal-purple) 0%, var(--deep-purple) 100%);
+    color: var(--white);
     width: 48px;
     height: 48px;
     font-size: 1.4rem;
     margin: 0 auto 12px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(107, 70, 193, 0.4);
 }
 
 #week-view .calendar-day {
     display: flex;
     flex-direction: column;
+    height:300px;
+}
+
+#week-view .current-day {
+    background: linear-gradient(135deg, rgba(107, 70, 193, 0.25) 0%, rgba(85, 60, 154, 0.35) 100%);
+    border: 2px solid var(--light-purple) !important;
 }
 
 #week-view .weekday-name {
@@ -525,7 +539,21 @@ button:hover {
 }
 
 #week-view .current-day .weekday-name {
-    color: var(--deep-purple);
+    color: var(--white);
+    background: linear-gradient(135deg, var(--royal-purple) 0%, var(--deep-purple) 100%);
+    padding: 8px;
+    margin: -10px -10px 8px -10px;
+    border-bottom: none;
+}
+
+#week-view .other-month .weekday-name {
+    color: var(--medium-gray);
+    opacity: 0.5;
+}
+
+#week-view .other-month .date-number {
+    color: var(--medium-gray);
+    opacity: 0.4;
 }
 
 #week-view .event {
