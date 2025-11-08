@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task 2 - sessionStorage Implementation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="help-button" onclick="toggleHelp()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="14" y2="19"></line>
+            </svg>
+    </div>
+
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <div class="help-header">
+                <h2>sessionStorage Implementation Guide</h2>
+                <button class="close-btn" onclick="toggleHelp()">&times;</button>
+            </div>
+            <div class="help-body">
+                <h3>Objective</h3>
+                <p>Store temporary data using sessionStorage API. Data persists only while the browser tab remains open.</p>
+
+                <h3>Instructions</h3>
+                <ol>
+                    <li>Enter your favorite quote in the text area</li>
+                    <li>Click "Save Quote" to store it in sessionStorage
+                    </li>
+                    <li>Reload the page - your quote will still be there
+                    </li>
+                    <li>Close the tab and reopen - the quote will be gone
+                    </li>
+                    <li>Use "Clear Quote" to remove stored data manually
+                    </li>
+                </ol>
+
+                <h3>Key Differences from localStorage</h3>
+                <ul>
+                    <li>Data persists during page reloads within the same tab
+                    </li>
+                    <li>Data is cleared when the tab or browser is closed
+                    </li>
+                    <li>Data is not shared between different tabs or windows
+                    </li>
+                    <li>Ideal for temporary session-specific information
+                    </li>
+                </ul>
+
+                <h3>Technical Implementation</h3>
+                <ul>
+                    <li><code>sessionStorage.setItem(key, value)</code> - Store data</li>
+                    <li><code>sessionStorage.getItem(key)</code> - Retrieve data
+                    </li>
+                    <li><code>sessionStorage.removeItem(key)</code> - Delete data
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header class="page-header">
+            <h1>Session Quote Manager</h1>
+            <p class="subtitle">sessionStorage Implementation</p>
+        </header>
+
+        <div class="content-wrapper">
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="quoteText">Your Favorite Quote</label>
+                    <textarea id="quoteText" rows="5" placeholder="Enter your favorite quote here..."></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="saveQuote()">
+                            Save Quote
+                        </button>
+                    <button class="btn btn-secondary" onclick="clearQuote()">
+                            Clear Quote
+                        </button>
+                </div>
+
+                <div id="displayQuote" class="display-quote"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
