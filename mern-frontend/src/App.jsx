@@ -90,7 +90,7 @@ function App() {
             {users.length > 0 ? (
               <div className="users-grid">
                 {users.map((user) => (
-                  <div key={user.id} className="user-card">
+                  <div key={user._id} className="user-card">
                     <div className="user-avatar">
                       {user.name.charAt(0).toUpperCase()}
                     </div>
