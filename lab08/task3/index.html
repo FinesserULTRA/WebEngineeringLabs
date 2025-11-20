@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task 3 - IndexedDB Implementation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="help-button" onclick="toggleHelp()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="14" y2="19"></line>
+            </svg>
+    </div>
+
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <div class="help-header">
+                <h2>IndexedDB Implementation Guide</h2>
+                <button class="close-btn" onclick="toggleHelp()">&times;</button>
+            </div>
+            <div class="help-body">
+                <h3>Objective</h3>
+                <p>Store and retrieve structured data using IndexedDB, a client-side database for storing large amounts of data including objects and files.</p>
+
+                <h3>Instructions</h3>
+                <ol>
+                    <li>Enter a task description in the input field</li>
+                    <li>Click "Add Task" or press Enter to store it in IndexedDB
+                    </li>
+                    <li>View all tasks displayed in the list below</li>
+                    <li>Toggle task completion status using the Complete button
+                    </li>
+                    <li>Delete individual tasks with the Delete button</li>
+                    <li>Use "Delete All Tasks" to clear the entire database
+                    </li>
+                </ol>
+
+                <h3>Key Features</h3>
+                <ul>
+                    <li>Stores complex JavaScript objects</li>
+                    <li>Auto-incrementing unique IDs for each task</li>
+                    <li>Persistent storage with no size limitations (browser-dependent)
+                    </li>
+                    <li>Asynchronous API for better performance</li>
+                    <li>Indexing capabilities for fast queries</li>
+                </ul>
+
+                <h3>Technical Implementation</h3>
+                <ul>
+                    <li><code>indexedDB.open(name, version)</code> - Open database
+                    </li>
+                    <li><code>db.createObjectStore()</code> - Create data store
+                    </li>
+                    <li><code>objectStore.add()</code> - Add records</li>
+                    <li><code>objectStore.getAll()</code> - Retrieve all records
+                    </li>
+                    <li><code>objectStore.delete()</code> - Remove records
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header class="page-header">
+            <h1>Task Manager</h1>
+            <p class="subtitle">IndexedDB Implementation</p>
+        </header>
+
+        <div class="content-wrapper">
+            <div class="stats-bar">
+                <div class="stat">
+                    <span class="stat-label">Total</span>
+                    <span class="stat-value" id="totalTasks">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Completed</span>
+                    <span class="stat-value" id="completedTasks">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Pending</span>
+                    <span class="stat-value" id="pendingTasks">0</span>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <input type="text" id="taskInput" placeholder="Enter a new task..." />
+                <button class="btn btn-primary" onclick="addTask()">Add
+                        Task</button>
+            </div>
+
+            <div id="taskList" class="task-list"></div>
+
+            <button class="btn btn-danger btn-block" onclick="deleteAllTasks()">
+                    Delete All Tasks
+                </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

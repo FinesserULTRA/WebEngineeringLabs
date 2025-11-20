@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task 4 - Cache API Implementation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="help-button" onclick="toggleHelp()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="14" y2="19"></line>
+            </svg>
+    </div>
+
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <div class="help-header">
+                <h2>Cache API Implementation Guide</h2>
+                <button class="close-btn" onclick="toggleHelp()">&times;</button>
+            </div>
+            <div class="help-body">
+                <h3>Objective</h3>
+                <p>Implement offline functionality using Service Workers and Cache API to store static assets for offline access.</p>
+
+                <h3>Important Note</h3>
+                <p><strong>Service Workers require a web server.</strong> They cannot run with the file:// protocol.</p>
+
+                <h3>Setup Instructions</h3>
+                <ol>
+                    <li><strong>Option 1:</strong> Double-click start-server.bat (requires Python)</li>
+                    <li><strong>Option 2:</strong> Use VS Code Live Server extension
+                    </li>
+                    <li><strong>Option 3:</strong> Run: <code>python -m
+                                http.server 8000</code></li>
+                    <li><strong>Option 4:</strong> Run: <code>npx
+                                http-server</code></li>
+                </ol>
+
+                <h3>Testing Procedure</h3>
+                <ol>
+                    <li>Open DevTools (F12)</li>
+                    <li>Navigate to Application → Service Workers</li>
+                    <li>Verify service worker is registered and activated
+                    </li>
+                    <li>Check Application → Cache Storage for cached files
+                    </li>
+                    <li>Go to Network tab → Set throttling to "Offline"</li>
+                    <li>Refresh the page - it should still work from cache
+                    </li>
+                </ol>
+
+                <h3>Technical Implementation</h3>
+                <ul>
+                    <li><code>navigator.serviceWorker.register()</code> - Register worker</li>
+                    <li><code>caches.open()</code> - Open cache storage</li>
+                    <li><code>cache.addAll()</code> - Cache multiple files
+                    </li>
+                    <li><code>caches.match()</code> - Retrieve from cache
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header class="page-header">
+            <h1>Cache API Demo</h1>
+            <p class="subtitle">Service Worker Implementation</p>
+        </header>
+
+        <div class="content-wrapper">
+            <div class="status-section">
+                <h3>Service Worker Status</h3>
+                <div id="swStatus" class="status-display">Checking...</div>
+            </div>
+
+            <div class="cache-section">
+                <h3>Cached Files</h3>
+                <div id="cachedFiles" class="cache-list">Loading...</div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="checkCacheStatus()">
+                        Refresh Cache Status
+                    </button>
+                <button class="btn btn-secondary" onclick="unregisterSW()">
+                        Unregister Service Worker
+                    </button>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>Offline Access</h4>
+                    <p>Pages load without internet connection</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Fast Loading</h4>
+                    <p>Instant asset delivery from cache</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Persistent Storage</h4>
+                    <p>Files cached across sessions</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

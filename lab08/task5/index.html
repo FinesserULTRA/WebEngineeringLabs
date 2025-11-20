@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task 5 - Storage Comparison Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="help-button" onclick="toggleHelp()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="14" y2="17"></line>
+        </svg>
+    </div>
+
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <div class="help-header">
+                <h2>Storage Comparison Dashboard</h2>
+                <button class="close-btn" onclick="toggleHelp()">&times;</button>
+            </div>
+            <div class="help-body">
+                <h3>Objective</h3>
+                <p>Compare and contrast different web storage APIs in a unified interface, demonstrating their unique characteristics and use cases.</p>
+
+                <h3>Storage APIs Demonstrated</h3>
+
+                <h4>localStorage</h4>
+                <ul>
+                    <li>Persistent storage that survives browser restarts</li>
+                    <li>Approximately 5-10MB storage limit</li>
+                    <li>Synchronous API</li>
+                    <li>Best for: User preferences, settings, themes</li>
+                </ul>
+
+                <h4>sessionStorage</h4>
+                <ul>
+                    <li>Temporary storage per tab session</li>
+                    <li>Data cleared when tab is closed</li>
+                    <li>Approximately 5-10MB storage limit</li>
+                    <li>Best for: Form data, temporary state</li>
+                </ul>
+
+                <h4>IndexedDB</h4>
+                <ul>
+                    <li>Client-side database for large datasets</li>
+                    <li>Stores structured data including objects</li>
+                    <li>Asynchronous API</li>
+                    <li>50MB+ storage (browser-dependent)</li>
+                    <li>Best for: Offline applications, large datasets</li>
+                </ul>
+
+                <h3>Instructions</h3>
+                <ol>
+                    <li>Enter data in each storage section</li>
+                    <li>Click "Save" to store data in respective API</li>
+                    <li>Observe real-time statistics updates</li>
+                    <li>Use "Clear" to remove individual storage data</li>
+                    <li>Use "Clear All Storage" to reset everything</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header class="page-header">
+            <h1>Storage Comparison Dashboard</h1>
+            <p class="subtitle">Comparing localStorage, sessionStorage & IndexedDB</p>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="localStorageCount">0</div>
+                <div class="stat-label">localStorage Items</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="sessionStorageCount">0</div>
+                <div class="stat-label">sessionStorage Items</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="indexedDBCount">0</div>
+                <div class="stat-label">IndexedDB Items</div>
+            </div>
+        </div>
+
+        <div class="storage-grid">
+            <div class="storage-card">
+                <div class="storage-header">
+                    <h3>localStorage</h3>
+                </div>
+                <div class="storage-body">
+                    <div id="localStorageDisplay" class="data-display">No data stored</div>
+                    <input type="text" id="localStorageInput" placeholder="Enter data...">
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="saveToLocalStorage()">Save</button>
+                        <button class="btn btn-secondary" onclick="clearLocalStorage()">Clear</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="storage-card">
+                <div class="storage-header">
+                    <h3>sessionStorage</h3>
+                </div>
+                <div class="storage-body">
+                    <div id="sessionStorageDisplay" class="data-display">No data stored</div>
+                    <input type="text" id="sessionStorageInput" placeholder="Enter data...">
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="saveToSessionStorage()">Save</button>
+                        <button class="btn btn-secondary" onclick="clearSessionStorage()">Clear</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="storage-card">
+                <div class="storage-header">
+                    <h3>IndexedDB</h3>
+                </div>
+                <div class="storage-body">
+                    <div id="indexedDBDisplay" class="data-display">No data stored</div>
+                    <input type="text" id="indexedDBInput" placeholder="Enter data...">
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="saveToIndexedDB()">Save</button>
+                        <button class="btn btn-secondary" onclick="clearIndexedDB()">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="danger-zone">
+            <h3>Danger Zone</h3>
+            <p>This action will clear all storage data from localStorage, sessionStorage, and IndexedDB.</p>
+            <button class="btn btn-danger-full" onclick="clearAllStorage()">Clear All Storage</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
